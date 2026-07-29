@@ -4,10 +4,11 @@ Odvozený image pro RTX 4070 Ti SUPER. Zachovává oficiální
 `bluefin-nvidia-open`, ale přegeneruje initramfs bez NVIDIA modulů a GSP
 firmwaru. Ovladač se načte až po připojení kořenového filesystemu.
 
-> **Stav 2026-07-29:** CI build prošel. Initramfs se zmenšil z 345 230 987 B
-> na 249 136 996 B a kontrola potvrdila, že NVIDIA modul zůstal v rootu, ale
-> není v initramfs. Na železe zatím neověřeno. Jde o experimentální workaround
-> upstream chyby GRUBu; funkční rollback na plain Bluefin musí zůstat zachovaný.
+> **✅ Ověřeno na železe 2026-07-29 na stroji B (RTX 4070 Ti SUPER).**
+> CI zmenšilo initramfs z 345 230 987 B na 249 136 996 B a potvrdilo, že NVIDIA
+> modul zůstal v rootu, ale není v initramfs. Uživatel následně potvrdil úspěšný
+> boot a funkčnost řešení. Jde o workaround upstream chyby GRUBu; plain Bluefin
+> je rozumné ponechat jako rollback, dokud neprojdou všechny lokální kontroly.
 
 ## Obsah repozitáře
 
@@ -78,6 +79,6 @@ podman run --rm --device nvidia.com/gpu=all \
   nvcr.io/nvidia/cuda:12.6.0-base-ubi9 nvidia-smi
 ```
 
-Nejdůležitější neověřený předpoklad: EFI framebuffer/simpledrm udrží obraz až
-do pozdního načtení NVIDIA modulu. CPU `i7-14700KF` nemá integrovanou grafiku,
-takže případná černá obrazovka nemusí znamenat, že systém nenabootoval.
+Na stroji B je ověřeno, že zmenšený initramfs projde přes GRUB a image nabootuje.
+CPU `i7-14700KF` nemá integrovanou grafiku, takže na jiném podobném stroji
+případná černá obrazovka nemusí sama o sobě znamenat, že systém nenabootoval.
