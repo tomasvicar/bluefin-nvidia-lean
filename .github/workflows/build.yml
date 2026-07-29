@@ -1,0 +1,75 @@
+# V cílovém image repu ulož jako .github/workflows/build.yml.
+name: build
+
+on:
+  schedule:
+    - cron: "0 4 * * 1"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  IMAGE_NAME: bluefin-nvidia-lean
+  IMAGE_REGISTRY: ghcr.io/${{ github.repository_owner }}
+  BASE_IMAGE: ghcr.io/ublue-os/bluefin-nvidia-open
+  BASE_TAG: stable
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Uvolnit místo na runneru
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /opt/hostedtoolcache/CodeQL /usr/local/share/boost \
+                      /usr/local/share/powershell /usr/share/swift
+          sudo docker image prune -af || true
+          df -h /
+
+      - name: Build a kontroly malého initramfs
+        id: build
+        uses: redhat-actions/buildah-build@v2
+        with:
+          containerfiles: ./Containerfile
+          image: ${{ env.IMAGE_NAME }}
+          tags: latest ${{ github.sha }}
+          oci: true
+          build-args: |
+            BASE_IMAGE=${{ env.BASE_IMAGE }}
+            BASE_TAG=${{ env.BASE_TAG }}
+
+      - name: Push do ghcr.io
+        id: push
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: ${{ steps.build.outputs.image }}
+          tags: ${{ steps.build.outputs.tags }}
+          registry: ${{ env.IMAGE_REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Úklid starých verzí
+        uses: dataaxiom/ghcr-cleanup-action@v1.2.2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          package: ${{ env.IMAGE_NAME }}
+          keep-n-tagged: 5
+          delete-untagged: true
+          delete-orphaned-images: true
+          exclude-tags: latest
+
+      - name: Shrnutí
+        if: always()
+        run: |
+          {
+            echo "### Build"
+            echo "- base: \`${BASE_IMAGE}:${BASE_TAG}\`"
+            echo "- image: \`${IMAGE_REGISTRY}/${IMAGE_NAME}:latest\`"
+            echo "- initramfs limit: 290 MiB"
+          } >> "$GITHUB_STEP_SUMMARY"
