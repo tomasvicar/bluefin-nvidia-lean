@@ -4,9 +4,10 @@ Odvozený image pro RTX 4070 Ti SUPER. Zachovává oficiální
 `bluefin-nvidia-open`, ale přegeneruje initramfs bez NVIDIA modulů a GSP
 firmwaru. Ovladač se načte až po připojení kořenového filesystemu.
 
-> **Stav 2026-07-29:** připraveno k prvnímu CI buildu, neověřeno na železe.
-> Jde o experimentální workaround upstream chyby GRUBu. Funkční rollback na
-> plain Bluefin musí zůstat zachovaný.
+> **Stav 2026-07-29:** CI build prošel. Initramfs se zmenšil z 345 230 987 B
+> na 249 136 996 B a kontrola potvrdila, že NVIDIA modul zůstal v rootu, ale
+> není v initramfs. Na železe zatím neověřeno. Jde o experimentální workaround
+> upstream chyby GRUBu; funkční rollback na plain Bluefin musí zůstat zachovaný.
 
 ## Obsah repozitáře
 

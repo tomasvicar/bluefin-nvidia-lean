@@ -8,6 +8,10 @@ ARG BASE_TAG="stable"
 
 FROM ${BASE_IMAGE}:${BASE_TAG}
 
+LABEL org.opencontainers.image.title="bluefin-nvidia-lean" \
+      org.opencontainers.image.description="Bluefin NVIDIA Open with a lean initramfs for GRUB-constrained UEFI systems" \
+      org.opencontainers.image.source="https://github.com/tomasvicar/bluefin-nvidia-lean"
+
 COPY build_files/ /tmp/build_files/
 
 # Git na Windows nemusí zachovat executable bit.
